@@ -1,0 +1,17 @@
+services:
+  ubuntu-mirror:
+    build: .
+    command: ["serve"]
+    ports:
+      - "6500:8080"
+    volumes:
+      - mirror-data:/var/spool/apt-mirror
+    environment:
+      # Override if you want more releases/architectures
+      UBUNTU_RELEASES: "jammy"
+      UBUNTU_ARCHES: "amd64"
+      UBUNTU_COMPONENTS: "main restricted universe multiverse"
+    restart: unless-stopped
+
+volumes:
+  mirror-data:

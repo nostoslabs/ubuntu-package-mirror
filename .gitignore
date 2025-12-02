@@ -1,0 +1,34 @@
+# Docker
+.dockerignore
+
+# Build artifacts
+*.tar.gz
+*.deb
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+# (commented out as these might be needed for development)
+# /var/spool/apt-mirror/
+# /var/www/html/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp
