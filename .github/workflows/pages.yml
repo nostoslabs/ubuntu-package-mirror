@@ -3,7 +3,7 @@ name: Deploy Helm Repository to GitHub Pages
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - 'helm/**'
   workflow_dispatch:
