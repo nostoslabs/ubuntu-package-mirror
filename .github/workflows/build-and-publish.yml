@@ -9,6 +9,10 @@ on:
   pull_request:
     branches:
       - main
+  schedule:
+    # Weekly rebuilds to pick up security updates
+    - cron: '0 2 * * 1'  # Every Monday at 2 AM UTC
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -20,6 +24,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      security-events: write  # For SARIF vulnerability reports
 
     steps:
       - name: Checkout repository
@@ -72,3 +77,28 @@ jobs:
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
           helm push ubuntu-mirror-*.tgz oci://ghcr.io/${{ github.repository_owner }}
+
+      - name: Run Trivy vulnerability scanner
+        if: github.event_name != 'pull_request'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          scanners: 'vuln'
+          severity: 'CRITICAL,HIGH,MEDIUM,LOW'
+
+      - name: Upload Trivy results to GitHub Security tab
+        if: always() && github.event_name != 'pull_request'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Fail on CRITICAL vulnerabilities (main branch only)
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main'
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL'
