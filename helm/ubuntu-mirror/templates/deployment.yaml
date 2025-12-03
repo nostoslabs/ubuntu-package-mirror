@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ubuntu-mirror.fullname" . }}
+  labels:
+    {{- include "ubuntu-mirror.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "ubuntu-mirror.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ubuntu-mirror.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: ubuntu-mirror
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: UBUNTU_RELEASES
+              value: {{ .Values.ubuntuMirror.releases | quote }}
+            - name: UBUNTU_MIRROR
+              value: {{ .Values.ubuntuMirror.mirror | quote }}
+            - name: SECURITY_MIRROR
+              value: {{ .Values.ubuntuMirror.securityMirror | quote }}
+            - name: UBUNTU_COMPONENTS
+              value: {{ .Values.ubuntuMirror.components | quote }}
+            - name: UBUNTU_ARCHES
+              value: {{ .Values.ubuntuMirror.arches | quote }}
+            - name: MIRROR_THREADS
+              value: {{ .Values.ubuntuMirror.threads | quote }}
+            {{- if .Values.ubuntuMirror.proxy }}
+            - name: MIRROR_PROXY
+              value: {{ .Values.ubuntuMirror.proxy | quote }}
+            {{- end }}
+          volumeMounts:
+            - name: mirror-data
+              mountPath: /var/spool/apt-mirror
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: mirror-data
+          persistentVolumeClaim:
+            claimName: {{ include "ubuntu-mirror.pvcName" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

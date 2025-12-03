@@ -1,0 +1,16 @@
+apiVersion: v2
+name: ubuntu-mirror
+description: A Helm chart for Ubuntu package mirror deployment
+type: application
+version: 0.1.0
+appVersion: "latest"
+keywords:
+  - ubuntu
+  - mirror
+  - packages
+  - apt
+home: https://github.com/nostoslabs/docker-package-mirror
+sources:
+  - https://github.com/nostoslabs/docker-package-mirror
+maintainers:
+  - name: nostoslabs

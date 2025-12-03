@@ -1,4 +1,4 @@
-name: Build and Publish Docker Image
+name: Build and Publish
 
 on:
   push:
@@ -52,8 +52,6 @@ jobs:
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Push Docker image
         if: github.event_name != 'pull_request'
@@ -63,4 +61,14 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
+
+      - name: Package Helm chart
+        if: github.event_name != 'pull_request'
+        run: |
+          helm package ./helm/ubuntu-mirror
+
+      - name: Push Helm chart to GHCR
+        if: github.event_name != 'pull_request'
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+          helm push ubuntu-mirror-*.tgz oci://ghcr.io/${{ github.repository_owner }}

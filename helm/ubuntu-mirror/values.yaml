@@ -1,0 +1,114 @@
+# Default values for ubuntu-mirror.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Image configuration
+image:
+  repository: ghcr.io/nostoslabs/docker-package-mirror
+  tag: "main"
+  pullPolicy: IfNotPresent
+
+# Application configuration
+ubuntuMirror:
+  # Ubuntu releases to mirror (space-separated)
+  releases: "jammy"
+  # Ubuntu mirror URL
+  mirror: "http://archive.ubuntu.com/ubuntu"
+  # Security mirror URL
+  securityMirror: "http://security.ubuntu.com/ubuntu"
+  # Ubuntu components to mirror
+  components: "main restricted universe multiverse"
+  # Ubuntu architectures
+  arches: "amd64"
+  # Number of threads for mirroring
+  threads: 10
+  # Proxy URL (optional)
+  proxy: ""
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+  annotations: {}
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/client-max-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+  hosts:
+    - host: ubuntu-mirror.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: ubuntu-mirror-tls
+  #    hosts:
+  #      - ubuntu-mirror.local
+
+# Persistence configuration
+persistence:
+  enabled: true
+  # Storage class for different platforms
+  # Leave empty for default storage class
+  storageClass: ""
+  # For AKS
+  # storageClass: "default"
+  # For EKS
+  # storageClass: "gp3"
+  # For microk8s/k3d
+  # storageClass: "local-path"
+  accessMode: ReadWriteOnce
+  size: 100Gi
+  # Existing PVC to use (if not creating a new one)
+  existingClaim: ""
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+# Node selector, tolerations, and affinity
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 65534
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 65534
+  runAsGroup: 65534
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+  # maxUnavailable: 1
+
+# Horizontal Pod Autoscaler
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
