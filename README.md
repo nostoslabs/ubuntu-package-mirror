@@ -70,3 +70,7 @@ Acquire::https::Proxy "false";
 ```
 
 This caches downloads on first use instead of mirroring everything up front.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
