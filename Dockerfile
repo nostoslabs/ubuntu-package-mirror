@@ -7,6 +7,8 @@ RUN apt-get update \
         apt-mirror \
         nginx-core \
         ca-certificates \
+        gpgv \
+    && dpkg --compare-versions "$(dpkg-query -W -f='${Version}' gpgv)" ge 2.4.4-2ubuntu17.4 \
     && rm -rf /var/lib/apt/lists/*
 
 # Create nginx user and group
